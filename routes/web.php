@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\Auth\LoginRegisterController;
 
 /*
@@ -20,6 +21,10 @@ use App\Http\Controllers\Auth\LoginRegisterController;
 Route::get('/', function () {
     return view('login');
 });
+
+Route::get('/send-mail',[SendEmailController::class,
+'index'])->name('Kiri-email');
+Route::post('/post-email', [SendEmailController::class, 'store'])->name('post-email');
 
 Route::controller(LoginRegisterController::class)->group(function() {
     Route::get('/register', 'register')->name('register');
