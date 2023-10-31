@@ -20,6 +20,15 @@
                         </div>
                     </div>
                     <div class="mb-3 row">
+                        <label for="no_telepon" class="col-md-4 col-form-label text-md-end text-start">No Telepon</label>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control @error('no_telepon') is-invalid @enderror" id="no_telepon" name="no_telepon" value="{{ old('no_telepon') }}">
+                            @if ($errors->has('no_telepon'))
+                            <span class="text-danger">{{ $errors->first('no_telepon') }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
                         <label for="email" class="col-md-4 col-form-label text-md-end text-start">Email Address</label>
                         <div class="col-md-6">
                             <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}">
