@@ -43,16 +43,26 @@ class LoginRegisterController extends Controller
      */
     public function store(Request $request)
     {
+        $path = ''; 
+
         $request->validate([
             'name' => 'required|string|max:250',
             'email' => 'required|email|max:250|unique:users',
-            'password' => 'required|min:8|confirmed'
+            'password' => 'required|min:8|confirmed',
+            'photo' =>'image|nullable|max:1999'
         ]);
-
+        if($request->hasFile('photo')){
+            $filenameWithExt = $request->file('photo')->getClientOriginalName();
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filenameSimpan = $filename . '_' . time() . '.' . $extension;
+            $path = $request->file('photo')->storeAs('photos', $filenameSimpan);
+        }
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'no_telepon' => $request->no_telepon,
+            'photo' => $path, 
             'password' => Hash::make($request->password)
         ]);
         Mail::to($request->email)->send(new SendEmail($request));
@@ -61,6 +71,7 @@ class LoginRegisterController extends Controller
         $request->session()->regenerate();
         return redirect()->route('dashboard')
             ->withSuccess('You have successfully registered & logged in!');
+        
     }
 
     /**
@@ -73,7 +84,7 @@ class LoginRegisterController extends Controller
         return view('login');
     }
 
-    /**
+    /** 
      * Authenticate the user.
      *
      * @param  \Illuminate\Http\Request  $request

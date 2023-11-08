@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\Auth\LoginRegisterController;
 
@@ -34,3 +35,5 @@ Route::controller(LoginRegisterController::class)->group(function() {
     Route::get('/dashboard', 'dashboard')->name('dashboard')->middleware('auth');
     Route::post('/logout', 'logout')->name('logout');
 });
+
+Route::resource('posts', PostController::class);
