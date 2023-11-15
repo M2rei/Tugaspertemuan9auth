@@ -19,7 +19,7 @@
             <a class="nav-link px-lg-4 rounded" href="#">Blog</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link px-lg-4 rounded" href="{{ route('posts.index') }}">Profile</a>
+            <a class="nav-link px-lg-4 rounded" href="{{ route('posts.index') }}">Gallery</a>
           </li>
         </ul>
       </div>

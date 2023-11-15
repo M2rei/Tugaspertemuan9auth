@@ -34,6 +34,12 @@ class PostController extends Controller
         //render view with posts
         return view('posts.index', compact('posts'));
     }
+    public function dashboard2()
+    {
+        return view('dashboard');
+    }
+
+
 
     /**
      * create
