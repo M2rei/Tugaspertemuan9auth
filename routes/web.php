@@ -37,3 +37,4 @@ Route::controller(LoginRegisterController::class)->group(function() {
 });
 
 Route::resource('posts', PostController::class);
+Route::get('/dashboard2', [PostController::class, 'dashboard2'])-> name('dashboard2');
