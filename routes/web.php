@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\InfoController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\GreetController;
 use App\Http\Controllers\SendEmailController;
 use App\Http\Controllers\Auth\LoginRegisterController;
 
@@ -38,3 +40,6 @@ Route::controller(LoginRegisterController::class)->group(function() {
 
 Route::resource('posts', PostController::class);
 Route::get('/dashboard2', [PostController::class, 'dashboard2'])-> name('dashboard2');
+
+Route::get('/info', [InfoController::class, 'index'])->name('info');
+// Route::get('/greet', [GreetController::class, 'greet'])->name('greet');

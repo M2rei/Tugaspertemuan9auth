@@ -1,41 +1,81 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
-
-// risize image
 use Intervention\Image\Facades\Image;
-
-//return type View
+use App\Http\Controllers\Controller;
 use Illuminate\View\View;
-
-//return type redirectResponse
 use Illuminate\Http\RedirectResponse;
-
-//import Facade "Storage"
 use Illuminate\Support\Facades\Storage;
-
 use App\Models\Post;
-use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Validator;
 
-class PostController extends Controller
+class posttController extends Controller
 {
+ /**
+    * @OA\Get(
+    * path="/api/gallery",
+    * tags={"gallery"},
+    * summary="Tampilkan Gallery",
+    * description="Ini adalah dokumentasi untuk menampilkan gallery",
+    * operationId="gallery_index",
 
-    /**
-     * index
-     *
-     * @return View
-     */
-    public function index(): View
+    * @OA\Response(
+    * response="default",
+    * description="Proses Berhasil"
+    * )
+    * )
+
+    * @OA\Post(
+    * path="/api/gallery/store",
+    * tags={"gallery"},
+    * summary="Tambah Gambar",
+    * description="Ini adalah dokumentasi untuk menambah gambar pada gallery",
+    * operationId="galllery.store",
+    * @OA\RequestBody(
+     *         required=true,
+     *         description="Data untuk mengunggah gambar",
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="title",
+     *                     description="Judul Upload",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="description",
+     *                     description="Deskripsi Gambar",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="picture",
+     *                     description="File Gambar",
+     *                     type="string",
+     *                     format="binary"
+     *                 ),
+     *             )
+     *         )
+     *     ),
+    * @OA\Response(
+    * response="default",
+    * description="Proses Berhasil"
+    * )
+    * )
+
+    */
+
+    public function index()
     {
-        $client = new Client();
-        $url =  "http://localhost:8000/api/gallery";
-        $response = $client->request('GET', $url);
-        $content = $response->getBody()->getContents();
-        $content_array = json_decode($content, true);
-        $posts = $content_array['data']['data'];
-        return view('posts.index', compact('posts'));
+        //get posts
+        $posts = Post::latest()->paginate(5);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data ditemukan',
+            'data' => $posts
+        ], 200);
     }
     public function dashboard2()
     {
@@ -54,72 +94,52 @@ class PostController extends Controller
         return view('posts.create');
     }
 
-    /**
-     * store
-     *
-     * @param  mixed $request
-     * @return RedirectResponse
-     */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
-        // //validate form
-        // this->validate($request, [
-        //     'image'     => 'required|image|mimetypes:image/jpeg,image/jpg,image/png|max:2048',
-        //     'title'     => 'required|min:5',
-        //     'content'   => 'required|min:10'
-        // ]);
+    
+        //validate form
+        $rules = [
+            'image'     => 'required|image|mimetypes:image/jpeg,image/jpg,image/png|max:2048',
+            'title'     => 'required|min:5',
+            'content'   => 'required|min:10'
+        ];
 
+        $validator = Validator::make($request->all(), $rules);
+
+        if($validator->fails()){
+            return response()->json([
+                'status'=>false,
+                'message'=>'Gagal upload gambar',
+                'data'=>$validator->errors()
+            ]);
+        }
+    
         //upload image
-        // $image = $request->file('image');
-        // $image->storeAs('posts', $image->hashName());
-        // $thumbnail = $request->file('image')->storeAs('posts/thumbnail', $image->hashName());
-        // $thumbnailpath = public_path('storage/posts/thumbnail/' . $image->hashName());
-        // $this->resize($thumbnailpath, 150, 93);
+        $image = $request->file('image');
+        $image->storeAs('posts', $image->hashName());
+        $thumbnail = $request->file('image')->storeAs('posts/thumbnail', $image->hashName());
+        $thumbnailpath = public_path('storage/posts/thumbnail/' . $image->hashName());
+        $this->resize($thumbnailpath, 150, 93);
 
-        // $squere = $request->file('image')->storeAs('posts/square', $image->hashName());
-        // $thumbnailpath = public_path('storage/posts/square/' . $image->hashName());
-        // $this->resize($thumbnailpath, 250, 250);
+        $squere = $request->file('image')->storeAs('posts/square', $image->hashName());
+        $thumbnailpath = public_path('storage/posts/square/' . $image->hashName());
+        $this->resize($thumbnailpath, 250, 250);
 
         //create post
-        // Post::create([
-        //     'image'     => $image->hashName(),
-        //     'title'     => $request->title,
-        //     'content'   => $request->content,
-        //     'thumbnail' => $image->hashName(),
-        //     'squere' => $image->hashName()
-        // ]);
-        $title = $request->input('title');
-        $description = $request->input('content');
-
-        $picture = $request->file('image');
-        // dd($title,$description,$picture );
-
-        $client = new Client();
-        $url = "http://localhost:8000/api/gallery/store";
-        $response = $client->request('POST', $url, [
-            'multipart' => [
-                [
-                    'name' => 'title',
-                    'contents' => $title,
-                ],
-                [
-                    'name' => 'content',
-                    'contents' => $description,
-                ],
-                [
-                    'name' => 'image',
-                    'contents' => fopen($picture->getPathname(), 'r'),
-                    'filename' => $picture->getClientOriginalName(),
-                ],
-            ],
+        Post::create([
+            'image'     => $image->hashName(),
+            'title'     => $request->title,
+            'content'   => $request->content,
+            'thumbnail' => $image->hashName(),
+            'squere' => $image->hashName()
         ]);
 
-        // $content = $response->getBody()->getContents();
-        // $content_array = json_decode($content, true);
-        // $galleries = $content_array;
+        //redirect to index
+        return response()->json([
+            'status' => true,
+            'message' => 'Berhasil Menambahkan Gambar'
+        ]);
 
-        // dd($content_array);
-        return redirect()->route('posts.index')->with(['success' => 'Data Berhasil Disimpan!']);
     }
 
     /**
